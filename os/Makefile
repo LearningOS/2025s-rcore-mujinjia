@@ -5,6 +5,14 @@ KERNEL_ELF := target/$(TARGET)/$(MODE)/os
 KERNEL_BIN := $(KERNEL_ELF).bin
 DISASM_TMP := target/$(TARGET)/$(MODE)/asm
 
+ifeq ($(OS),Windows_NT)
+    # Windows 使用 findstr
+    check_installed := findstr /C:"riscv64gc-unknown-none-elf (installed)"
+else
+    # Linux/macOS 使用 grep
+    check_installed := grep "riscv64gc-unknown-none-elf (installed)"
+endif
+
 # Building mode argument
 ifeq ($(MODE), release)
 	MODE_ARG := --release
@@ -28,7 +36,7 @@ DISASM ?= -x
 build: env $(KERNEL_BIN)
 
 env:
-	(rustup target list | grep "riscv64gc-unknown-none-elf (installed)") || rustup target add $(TARGET)
+	(rustup target list | ${check_installed}) || rustup target add $(TARGET)
 	cargo install cargo-binutils
 	rustup component add rust-src
 	rustup component add llvm-tools-preview
